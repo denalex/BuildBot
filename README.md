@@ -19,6 +19,3 @@ Open the .env file and fill out the required parameters
 ruby build_bot.rb
 
 ```
-
-# Pipeline
-The pipeline currently exists in https://pa-toolsmiths.data.pivotal.ci/teams/main/pipelines/build_bot/jobs/BuildBot

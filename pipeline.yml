@@ -1,0 +1,48 @@
+---
+resources:
+- name: office_hours
+  type: time
+  source:
+    interval: 2h
+    start: 8:00 AM
+    stop: 6:00 PM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+    location: US/Pacific
+
+- name: pa_toolsmiths
+  type: git
+  source:
+    branch: pipeline_dashboard
+    private_key: {{pa-toolsmiths-remote-deploy-key}}
+    uri: git@github.com:Pivotal-DataFabric/pa-toolsmiths.git
+
+jobs:
+- name: BuildBot
+  max_in_flight: 1
+  plan:
+  - get: office_hours
+    trigger: true
+  - get: pa_toolsmiths
+    trigger: true
+  - task: run_build_bot
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: ruby
+          tag: '2.3'
+      inputs:
+      - name: pa_toolsmiths
+      params:
+        BASIC_AUTH_USERNAME: {{basic_auth_username}}
+        BASIC_AUTH_PASSWORD: {{basic_auth_password}}
+        SLACK_WEBHOOK_URL: {{slack_webhook_url}}
+      run:
+        path: "sh"
+        args:
+        - -exc
+        - |
+          cd pa_toolsmiths/BuildBot/
+            bundle install
+            ruby build_bot.rb

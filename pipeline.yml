@@ -9,20 +9,19 @@ resources:
     days: [Monday, Tuesday, Wednesday, Thursday, Friday]
     location: US/Pacific
 
-- name: pa_toolsmiths
+- name: BuildBot
   type: git
   source:
-    branch: pipeline_dashboard
-    private_key: {{pa-toolsmiths-remote-deploy-key}}
-    uri: git@github.com:Pivotal-DataFabric/pa-toolsmiths.git
+    branch: master
+    uri: https://github.com/Pivotal-DataFabric/BuildBot.git
 
 jobs:
-- name: BuildBot
+- name: BuildBotNotify
   max_in_flight: 1
   plan:
   - get: office_hours
     trigger: true
-  - get: pa_toolsmiths
+  - get: BuildBot
     trigger: true
   - task: run_build_bot
     config:
@@ -33,7 +32,7 @@ jobs:
           repository: ruby
           tag: '2.3'
       inputs:
-      - name: pa_toolsmiths
+      - name: BuildBot
       params:
         BASIC_AUTH_USERNAME: {{basic_auth_username}}
         BASIC_AUTH_PASSWORD: {{basic_auth_password}}
@@ -43,6 +42,6 @@ jobs:
         args:
         - -exc
         - |
-          cd pa_toolsmiths/BuildBot/
+          cd BuildBot/
             bundle install
             ruby build_bot.rb

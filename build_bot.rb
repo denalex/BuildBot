@@ -28,7 +28,7 @@ class Concourse
 	def initialize(pipeline)
 		@url = "https://gpdb.data.pivotal.ci"
 		@pipeline = pipeline
-		@pipeline_url = "#{@url}/teams/main/#{@pipeline}"
+		@pipeline_url = "#{@url}/teams/main/pipelines/#{@pipeline}"
 	end
 
 	def http_get(path)

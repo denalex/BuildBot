@@ -1,3 +1,12 @@
+## ======================================================================
+##  ____        _ _     _ ____        _
+## | __ ) _   _(_) | __| | __ )  ___ | |_
+## |  _ \| | | | | |/ _` |  _ \ / _ \| __|
+## | |_) | |_| | | | (_| | |_) | (_) | |_
+## |____/ \__,_|_|_|\__,_|____/ \___/ \__|
+## ======================================================================
+
+require 'optparse'
 require 'net/http'
 require 'uri'
 require 'pry'
@@ -8,7 +17,7 @@ require 'cgi'
 require 'dotenv/load'
 
 # Slack based Notifier class
-class Notifier
+class SlackNotifier
   def initialize(webhook_url)
     @notifier = Slack::Notifier.new webhook_url
   end
@@ -21,6 +30,13 @@ class Notifier
     @notifier.post text: message,
                    icon_url: icon_url,
                    username: username
+  end
+end
+
+# Stdout based Notifier class
+class StdoutNotifier
+  def notify(message)
+    puts message
   end
 end
 
@@ -116,9 +132,36 @@ def reason(ci, job)
   "<a href='https://github.com/greenplum-db/#{github_repo(job)}/commit/#{ci.gpdb_src_sha(job['finished_build']['id'])}'>[CURRENT COMMIT]</a> <a href='https://github.com/greenplum-db/#{github_repo(job)}/commit/#{ci.last_green_sha(job)}'>[LAST PASSING COMMIT]</a>"
 end
 
-notifier = Notifier.new ENV['SLACK_WEBHOOK_URL']
+## ======================================================================
+## Main
+## ======================================================================
 
-['4.3_STABLE', 'gpdb_master', 'gpdb_master_without_asserts', '5X_STABLE'].each do |pipeline|
+options = {}
+options[:pipelines] = ['4.3_STABLE',
+                       'gpdb_master',
+                       'gpdb_master_without_asserts',
+                       '5X_STABLE']
+options[:stdout] = false
+
+OptionParser.new do |opts|
+  opts.banner = 'Usage: build_bot.rb [options]'
+
+  opts.on('-s', '--stdout', 'Send output to stdout') do |s|
+    options[:stdout] = s
+  end
+
+  opts.on('-p', '--pipelines x,y,z', Array, 'Pipeline list to process') do |p|
+    options[:pipelines] = p
+  end
+end.parse!
+
+notifier = if options[:stdout]
+             StdoutNotifier.new
+           else
+             SlackNotifier.new ENV['SLACK_WEBHOOK_URL']
+           end
+
+options[:pipelines].each do |pipeline|
   ci = Concourse.new(pipeline)
   failed = ci.failed_jobs
   errored = ci.errored_jobs

@@ -19,7 +19,22 @@ will be installed through Bundler above. Execute Rubocop with the following:
 ```
 rubocop
 ```
+### Local iteration 
 
+Review the usage options to speed up development iterations for
+BuildBot.
+
+The "--stdout" option allows one to easily test the output by printing
+to standard output (stdout).
+
+The "--pipelines" option allows one to adjust the pipelines processed.
+
+```
+Usage: build_bot.rb [options]
+    -s, --stdout                     Send output to stdout
+    -p, --pipelines x,y,z            Pipeline list to process
+
+```
 # Usage
 ```
 cp .env.sample .env

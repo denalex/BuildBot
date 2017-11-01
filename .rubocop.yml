@@ -1,0 +1,7 @@
+AllCops:
+  Include:
+    - 'build_bot.rb'
+    - '**/Gemfile'
+
+Metrics/LineLength:
+  Max: 262

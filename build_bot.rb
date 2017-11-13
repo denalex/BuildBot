@@ -60,15 +60,19 @@ class Concourse
   end
 
   def failed_jobs(jobs_in_question = jobs_not_running_currently)
-    jobs_in_question.select { |job| job['finished_build'] && job['finished_build']['status'] == 'failed' }
+    jobs_in_question.select { |job| !job['paused'] && job['finished_build'] && job['finished_build']['status'] == 'failed' }
   end
 
   def errored_jobs(jobs_in_question = jobs_not_running_currently)
-    jobs_in_question.select { |job| job['finished_build'] && job['finished_build']['status'] == 'errored' }
+    jobs_in_question.select { |job| !job['paused'] && job['finished_build'] && job['finished_build']['status'] == 'errored' }
   end
 
   def aborted_jobs(jobs_in_question = jobs_not_running_currently)
-    jobs_in_question.select { |job| job['finished_build'] && job['finished_build']['status'] == 'aborted' }
+    jobs_in_question.select { |job| !job['paused'] && job['finished_build'] && job['finished_build']['status'] == 'aborted' }
+  end
+
+  def paused_jobs(jobs_in_question = jobs)
+    jobs_in_question.select { |job| job['paused'] }
   end
 
   def failed_jobs_including_currently_running
@@ -166,16 +170,23 @@ options[:pipelines].each do |pipeline|
   failed = ci.failed_jobs
   errored = ci.errored_jobs
   aborted = ci.aborted_jobs
+  paused = ci.paused_jobs
 
   failed.each { |job| notifier.notify(format_msg(ci, job, ':red_circle:')) }
   errored.each { |job| notifier.notify(format_msg(ci, job, ':large_orange_diamond:')) }
   aborted.each { |job| notifier.notify(format_msg(ci, job, ':poop:')) }
+  paused.each { |job| notifier.notify(format_msg(ci, job, ':large_blue_circle:')) }
 
-  if errored.size.zero? && failed.size.zero? && aborted.size.zero?
-    if ci.failed_jobs_including_currently_running.size.zero? && ci.errored_jobs_including_currently_running.size.zero?
-      notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :green_heart: Hooray! All Green.")
-    else
+  if errored.size.zero? && failed.size.zero? && aborted.size.zero? && paused.size.zero?
+    builds_in_progress = ci.failed_jobs_including_currently_running.size.nonzero? ||
+      ci.errored_jobs_including_currently_running.size.nonzero?
+
+    if builds_in_progress
       notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :fingers_crossed: Some failed are currently running. Hope they make it.")
+    elsif paused.size.nonzero?
+      notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :thinking_face: Some jobs are paused")
+    else
+      notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :green_heart: Hooray! All Green.")
     end
   end
 end

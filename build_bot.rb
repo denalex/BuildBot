@@ -122,8 +122,8 @@ class Concourse
   end
 end
 
-def format_msg(ci, job, icon)
-  "#{icon} <a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: <a href='#{ci.url}#{job['finished_build']['url']}'>#{job['name']}</a> #{reason(ci, job)}"
+def format_msg(ci, job, team, icon)
+  "#{icon} <a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: <a href='#{ci.url}#{job['finished_build']['url']}'>#{job['name']}</a> #{team} #{reason(ci, job)}"
 end
 
 def github_repo(job)
@@ -165,6 +165,10 @@ notifier = if options[:stdout]
              SlackNotifier.new ENV['SLACK_WEBHOOK_URL']
            end
 
+# load mapping of jobs to team tags, use @channel as a default team tag
+shame = Hash[*File.read('shame.csv').split(/[,\n]/)]
+shame.default = '@channel'
+
 options[:pipelines].each do |pipeline|
   ci = Concourse.new(pipeline)
   failed = ci.failed_jobs
@@ -172,10 +176,10 @@ options[:pipelines].each do |pipeline|
   aborted = ci.aborted_jobs
   paused = ci.paused_jobs
 
-  failed.each { |job| notifier.notify(format_msg(ci, job, ':red_circle:')) }
-  errored.each { |job| notifier.notify(format_msg(ci, job, ':large_orange_diamond:')) }
-  aborted.each { |job| notifier.notify(format_msg(ci, job, ':poop:')) }
-  paused.each { |job| notifier.notify(format_msg(ci, job, ':large_blue_circle:')) }
+  failed.each  { |job| notifier.notify(format_msg(ci, job, shame[job], ':red_circle:')) }
+  errored.each { |job| notifier.notify(format_msg(ci, job, shame[job], ':large_orange_diamond:')) }
+  aborted.each { |job| notifier.notify(format_msg(ci, job, shame[job], ':poop:')) }
+  paused.each  { |job| notifier.notify(format_msg(ci, job,         '', ':large_blue_circle:')) }
 
   if errored.size.zero? && failed.size.zero? && aborted.size.zero? && paused.size.zero?
     builds_in_progress = ci.failed_jobs_including_currently_running.size.nonzero? ||

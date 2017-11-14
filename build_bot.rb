@@ -123,7 +123,7 @@ class Concourse
 end
 
 def format_msg(ci, job, icon)
-  "<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: #{icon} <a href='#{ci.url}#{job['finished_build']['url']}'>#{job['name']}</a> #{reason(ci, job)}"
+  "#{icon} <a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: <a href='#{ci.url}#{job['finished_build']['url']}'>#{job['name']}</a> #{reason(ci, job)}"
 end
 
 def github_repo(job)
@@ -182,11 +182,9 @@ options[:pipelines].each do |pipeline|
       ci.errored_jobs_including_currently_running.size.nonzero?
 
     if builds_in_progress
-      notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :fingers_crossed: Some failed are currently running. Hope they make it.")
-    elsif paused.size.nonzero?
-      notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :thinking_face: Some jobs are paused")
+      notifier.notify(":fingers_crossed: <a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: Some failed are currently running. Hope they make it.")
     else
-      notifier.notify("<a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: :green_heart: Hooray! All Green.")
+      notifier.notify(":green_heart: <a href='#{ci.pipeline_url}'>#{ci.pipeline}</a>: Hooray! All Green.")
     end
   end
 end

@@ -1,4 +1,4 @@
-This is a spike, it works.. but no tests yet. 
+This is a spike, it works.. but no tests yet.
 It is a bot that checks the build status and sends out slack notifications.
 
 # Setup
@@ -19,7 +19,7 @@ will be installed through Bundler above. Execute Rubocop with the following:
 ```
 rubocop
 ```
-### Local iteration 
+### Local iteration
 
 Review the usage options to speed up development iterations for
 BuildBot.
@@ -45,3 +45,7 @@ Open the .env file and fill out the required parameters
 ruby build_bot.rb
 
 ```
+
+# Enabling team Slack notifications
+
+If you would like to have your team receive Slack notifications when your job fails, add the mapping between your job and your team slack alias to `teams.csv` file.

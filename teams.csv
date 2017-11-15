@@ -1,0 +1,5 @@
+regression_tests_gphdfs_centos,@gp-unmanaged-data-team
+regression_tests_pxf_cdh_rpm,@gp-unmanaged-data-team
+regression_tests_pxf_cdh_tar,@gp-unmanaged-data-team
+regression_tests_pxf_hdp_rpm,@gp-unmanaged-data-team
+regression_tests_pxf_hdp_tar,@gp-unmanaged-data-team
